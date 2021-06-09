@@ -1,0 +1,131 @@
+﻿@page "/lean-in-15"
+
+@using Humanizer;
+
+@inject IMealService MealService
+
+<h3 class="text-center font-weight-bold">Lean in 15</h3>
+<p class="text-center my-3">Home-friendly health from Joe Wicks, perfect for fuelling his HIIT workouts</p>
+
+<div class="container">
+    <div class="row my-5">
+
+
+        @if (meals == null)
+        {
+            <div class="text-center mx-auto my-5">
+                <SfProgressBar @ref="ProObj4" Type="ProgressType.Circular" Value="20" Width="75px" Height="75px"
+                               StartAngle="180" EndAngle="180" CornerRadius="CornerType.Round"
+                               IsIndeterminate="true" Minimum="0" Maximum="100">
+                    <ProgressBarAnimation Enable="true" Duration="2000" Delay="0"></ProgressBarAnimation>
+                </SfProgressBar>
+            </div>
+        }
+        else
+        {
+            @foreach (var meal in meals)
+            {
+                <div class="col-lg-3 p-3">
+                    <a class="text-dark text-decoration-none" href="/lean-in-15/meal/@meal.MealId">
+                        <div class="card" style="width: 16rem;">
+                            <img class="card-img-top" src="@meal.Img" alt="@meal.Title">
+                            <div class="card-body">
+                                <h6 class="card-title">@meal.Title</h6>
+                                <p class="card-text badge badge-secondary">@meal.PrepTime min</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+            }
+        }
+    </div>
+</div>
+
+
+
+@code {
+    SfProgressBar ProObj4;
+    //Variable used for searching (tbSearch)
+    public string SearchTerm { get; set; }
+    public string SearchError = "";
+    public string Listdisplay = "block";
+    public string Errordisplay = "none";
+    public string Nowshowing = "Recent Entries";
+    // Create an empty list, named meals, of empty Meal objects.
+    IEnumerable<Meal> meals;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //Populate the list of meal objects from the Meal table.
+        meals = await MealService.MealList();
+    }
+
+    //Make pressing ENTER in the search box the same as clicking the Search button.
+    private void SearchKeyPress(KeyboardEventArgs ev)
+    {
+        if (ev.Key == "Enter")
+        {
+            //System.Diagnostics.Debug.WriteLine(ev.Key);
+            Search();
+        }
+    }
+
+    //Do the search
+    private async void Search()
+    {
+        //Forces the progress indicator to show while searching.
+        if (SearchTerm.Length > 0)
+        {
+            meals = null;
+            Nowshowing = "Contains: " + SearchTerm;
+            StateHasChanged();
+            //Does the search and stores result in meals collection.
+            meals = await MealService.MealSearch(SearchTerm);
+            var howmany = meals.Count();
+            // Show results or error depending on how many found.
+            switch (howmany)
+            {
+                case int n when (n < 1):
+                    errorMessage("Not found, please try another search");
+                    break;
+                case int n when (n > 250):
+                    errorMessage("More than 250 results, please try a different search.");
+                    break;
+                default:
+                    //Show the search results and count.
+                    Nowshowing += " (" + howmany + ")";
+                    errorMessage("");
+                    StateHasChanged();
+                    break;
+            }
+        }
+        else
+        {
+            //If no search term, just do the default list.
+            Nowshowing = "Recent entries";
+            meals = await MealService.MealList();
+            StateHasChanged();
+        }
+
+        //Show or hide the search results error message.
+        void errorMessage(string msgText)
+        {
+            if (msgText.Length > 0)
+            {
+                Listdisplay = "none";
+                Errordisplay = "block";
+                SearchError = msgText;
+            }
+            else
+            {
+                Listdisplay = "block";
+                Errordisplay = "none";
+                SearchError = "";
+            }
+            //Re-render the page.
+            StateHasChanged();
+        }
+        //System.Diagnostics.Debug.WriteLine(howmany);
+    }
+}

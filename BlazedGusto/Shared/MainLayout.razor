@@ -1,0 +1,21 @@
+﻿@inherits LayoutComponentBase
+
+<div class="sidebar">
+    <NavMenu />
+</div>
+
+<div class="main">
+    <div class="top-nav top-row px-4 auth bg-light">
+        <LoginDisplay />
+    </div>
+
+    <div class="content px-4">
+        @Body
+    </div>
+</div>
+<BlazoredToasts Timeout="2"
+                IconType="IconType.FontAwesome"
+                SuccessClass="bg-dark"
+                SuccessIcon="fa fa-thumbs-up"
+                ErrorIcon="fa fa-bug"
+                ShowProgressBar="true" />

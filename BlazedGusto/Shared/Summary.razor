@@ -1,0 +1,65 @@
+﻿@inject ILocalStorageService LocalStorage
+@inject ISummaryService SummaryService
+@implements IDisposable
+
+<a href="/summary" class="btn btn-primary text-white">
+    <i class="oi oi-cart"> </i>
+    <span class="badge badge-pill badge-light">
+        @CountLocalStorage
+    </span>
+</a>
+
+@code {
+
+    public int CountLocalStorage { get; set; }
+    public List<Ingredient> summary;
+
+
+    protected override void OnInitialized()
+    {
+        SummaryService.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        SummaryService.OnChange -= StateHasChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await GetLocalStorageCount();
+            LocalStorage.Changed += (sender, e) =>
+            {
+                Console.WriteLine($"Value for key {e.Key} changed from {e.OldValue} to {e.NewValue}");
+            };
+            await TestTimespan();
+
+            StateHasChanged();
+        }
+    }
+
+    async Task GetLocalStorageCount()
+    {
+        summary = await LocalStorage.GetItemAsync<List<Ingredient>>("summary");
+        if (summary == null)
+        {
+            CountLocalStorage = 0;
+        }
+        else
+        {
+            CountLocalStorage = summary.Count();
+        }
+    }
+
+    async Task TestTimespan()
+    {
+        var timespan = await LocalStorage.GetItemAsync<TimeSpan>("timespan");
+        if (timespan == TimeSpan.Zero)
+        {
+            await LocalStorage.SetItemAsync("timespan", new TimeSpan(0, 15, 0));
+            timespan = await LocalStorage.GetItemAsync<TimeSpan>("timespan");
+        }
+    }
+}

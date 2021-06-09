@@ -1,0 +1,227 @@
+﻿@page "/lean-in-15/meal/{id:int}"
+
+@inject IMealService MealService
+@inject IIngredientService IngredientService
+@inject ILocalStorageService LocalStorage
+@inject IToastService ToastService
+@inject ICookingInstructionService InstructionSercive
+@inject NavigationManager uriHelper
+@inject ISummaryService SummaryService
+@using System.Linq;
+
+<div class="container">
+    <div class="row my-5">
+        <div class="col-md-6">
+            <img class="w-100" src="@meal.Img" alt="" />
+        </div>
+        <div class="col-md-6">
+            <h2>@meal.Title</h2>
+            <p class="mt-5 mb-4">@meal.Description</p>
+            <span class="oi oi-timer mx-2"> @meal.PrepTime</span>
+            <span class="oi oi-globe mx-2"> @meal.Nationality</span>
+            <div class="mt-4">
+                <button class="btn btn-lg btn-primary" @onclick="AddToSummary">Add To Summary</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 rounded-sm">
+            <div class="bg-white m-2 p-4">
+                <h4>Ingredients</h4>
+                <AuthorizeView>
+                    <Authorized>
+                        <EditForm Context="IngredientForm" Model="@ingredient" OnValidSubmit="@IngredientSave" class="form-inline">
+                            <SfTextBox CssClass="e-outline mb-2" @bind-Value="ingredient.Img" Placeholder="Image Url" FloatLabelType="@FloatLabelType.Auto"></SfTextBox>
+
+                            <SfNumericTextBox CssClass="e-outline mb-2" @bind-Value="ingredient.Quantity" Placeholder="Quantity" FloatLabelType="@FloatLabelType.Auto"></SfNumericTextBox>
+                            <SfTextBox CssClass="e-outline my-3" @bind-Value="ingredient.Type" Placeholder="Type" FloatLabelType="@FloatLabelType.Auto"></SfTextBox>
+
+                            <div class="row">
+                                <div class="col-12 errormsg">
+                                    <DataAnnotationsValidator />
+                                    <ValidationSummary />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 buttons text-center">
+                                    <button class="btn btn-primary mx-auto" type="submit">Add Ingredient</button>
+                                </div>
+                            </div>
+                        </EditForm>
+
+                        <hr />
+                    </Authorized>
+                    <NotAuthorized>
+                        <div></div>
+                    </NotAuthorized>
+                </AuthorizeView>
+
+                <div>
+                    @if (ingredients == null)
+                    {
+                        <p style="text-align:center">no ingredients</p>
+                    }
+                    else
+                    {
+                        @foreach (var ingr in ingredients)
+                        {
+                            if (ingr.MealId == Id)
+                            {
+                                if (ingr.Quantity >= 5)
+                                {
+                                    <div class="d-block my-1"> <img src="@ingr.Img" style="width:48px" alt="Alternate Text" /> <span>@ingr.Quantity</span><span>g</span> <span>@ingr.Type</span></div>
+
+                                }
+                                else
+                                {
+                                    <div class="d-block my-1"> <img src="@ingr.Img" style="width:48px" alt="Alternate Text" /> <span>@ingr.Quantity</span> <span>@ingr.Type</span></div>
+
+                                }
+
+                            }
+                        }
+                    }
+                </div>
+
+            </div>
+        </div>
+        <div class="col-md-8 rounded-sm">
+            <div class="bg-white m-2 p-3">
+                <h4>Cooking instructions</h4>
+                <AuthorizeView>
+                    <Authorized>
+                        <EditForm Context="IngredientForm" Model="@cookingInstruction" OnValidSubmit="@CookingInstructionSave" class="form-inline">
+                            <SfTextBox CssClass="e-outline mb-2" @bind-Value="cookingInstruction.Img" Placeholder="Image Url" FloatLabelType="@FloatLabelType.Auto"></SfTextBox>
+                            <SfNumericTextBox CssClass="e-outline mb-2" @bind-Value="cookingInstruction.Step" Placeholder="Step" FloatLabelType="@FloatLabelType.Auto"></SfNumericTextBox>
+                            <SfTextBox CssClass="e-outline my-3" @bind-Value="cookingInstruction.Description" Placeholder="Type" FloatLabelType="@FloatLabelType.Auto"></SfTextBox>
+                            <div class="row">
+                                <div class="col-12 errormsg">
+                                    <DataAnnotationsValidator />
+                                    <ValidationSummary />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 buttons text-center">
+                                    <button class="btn btn-primary mx-auto" type="submit">Add Ingredient</button>
+                                </div>
+                            </div>
+                        </EditForm>
+
+                        <hr />
+                    </Authorized>
+                    <NotAuthorized>
+                        <div></div>
+                    </NotAuthorized>
+                </AuthorizeView>
+
+                <div>
+                    @if (cookingInstructions == null)
+                    {
+                        <p style="text-align:center">no instructions yet.</p>
+                    }
+                    else
+                    {
+                        @foreach (var instr in cookingInstructions)
+                        {
+                            if (instr.MealId == Id)
+                            {
+                                <div class="row mx-auto">
+                                    <div class="col-lg-5">
+                                        <img class="w-100" src="@instr.Img" alt="@instr.Step" />
+                                    </div>
+                                    <div class="col-lg-1">
+                                        <span class="h3 font-weight-bold">@instr.Step.</span>
+                                    </div>
+                                    <div class="col-lg-6">
+                                        <span>@instr.Description</span>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@code {
+    Ingredient ingredient = new Ingredient();
+    CookingInstruction cookingInstruction = new CookingInstruction();
+
+    IEnumerable<Ingredient> ingredients;
+    IEnumerable<CookingInstruction> cookingInstructions;
+
+    [Parameter]
+    public int Id { get; set; }
+    Meal meal = new Meal();
+
+    public static System.Timers.Timer Timer;
+    private int counter = 2;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        meal = await MealService.Meal_GetOne(Id);
+        ingredients = await IngredientService.IngredientList();
+        cookingInstructions = await InstructionSercive.CookingInstructionList();
+
+    }
+
+    protected async Task IngredientSave()
+    {
+        if (ingredient.IngredientId == 0)
+        {
+            // Insert if IngredientId is zero.
+            ingredient.MealId = Id;
+            await IngredientService.IngredientInsert(ingredient);
+            StateHasChanged();
+        }
+    }
+    protected async Task CookingInstructionSave()
+    {
+        if (cookingInstruction.CookingInstructionId == 0)
+        {
+            // Insert if IngredientId is zero.
+            cookingInstruction.MealId = Id;
+            await InstructionSercive.CookingInstructionInsert(cookingInstruction);
+            StateHasChanged();
+        }
+    }
+
+
+
+    public async Task AddToSummary()
+    {
+
+        //await SummaryService.AddToSummary(ingredient, ingredients, Id, meal);
+        var summary = await LocalStorage.GetItemAsync<List<Meal>>("summary");
+        if (summary == null)
+        {
+            summary = new List<Meal>();
+        }
+        meal.Ingredients = new List<Ingredient>();
+
+        foreach (var ingr in ingredients)
+        {
+            if (ingr.MealId == Id)
+            {
+
+                meal.Ingredients.Add(ingr);
+
+            }
+        }
+        summary.Add(meal);
+        await LocalStorage.SetItemAsync("summary", summary);
+        ToastService.ShowInfo(meal.Title, "Added to summary");
+
+        uriHelper.NavigateTo(uriHelper.Uri, forceLoad: true);
+    }
+
+
+}

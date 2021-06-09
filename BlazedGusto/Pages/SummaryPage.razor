@@ -1,0 +1,103 @@
+﻿@page "/summary"
+
+@inject ISummaryService SummaryService
+@inject ILocalStorageService localStorage
+@inject NavigationManager uriHelper
+
+
+<div class="container">
+    <h3 class="text-center">Summary</h3>
+    @if (summaryItems == null || summaryItems.Count == 0)
+    {
+        <p>No items are added.</p>
+    }
+    else
+    {
+        <div class="row my-5">
+            @foreach (var item in summaryItems)
+            {
+                <a class="text-dark text-decoration-none" href="/lean-in-15/meal/@item.MealId">
+                    <div class="col-md-3">
+                        <div class="card" style="width: 14rem;">
+                            <img class="card-img-top" src="@item.Img" alt="@item.Title">
+                            <div class="card-body">
+                                <h6 class="card-title">@item.Title</h6>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+
+        <div class="row">
+            <div class="col-md-11 p-5 mx-auto rounded-sm shadow-sm bg-white">
+                <h3 class="text-center">Total Ingredients</h3>
+                <div class="row">
+                    <div class="col-md-1">
+                        @foreach (var item in ingredientsSummary.GroupBy(x => x.Img).Select(y => new { Img = y.Key, Val = y.Sum(s => s.Quantity) }))
+                        {
+                            <div>
+                                <img class="w-100" src="@item.Img" alt="" />
+                            </div>
+                        }
+                    </div>
+                    <div class="col-md-10">
+                        @foreach (var item in ingredientsSummary.GroupBy(x => x.Type).Select(y => new { Type = y.Key, Val = y.Sum(s => s.Quantity) }))
+                        {
+                            if (item.Type == "white potatoes")
+                            {
+                                <div>
+                                    <p class="my-4">@item.Type - @item.Val</p>
+
+                                </div>
+                            }
+                            else
+                            {
+                                <div>
+                                    <p class="my-4">@item.Type - @item.Val<span>g</span></p>
+
+
+                                </div>
+                            }
+
+                        }
+
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-lg btn-primary w-25 mx-auto my-5" @onclick="ClearLocalStorage">Clear Summary</button>
+        </div>
+    }
+</div>
+
+
+
+
+@code {
+    List<Meal> summaryItems = new List<Meal>();
+    List<Ingredient> ingredientsSummary = new List<Ingredient>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            summaryItems = await SummaryService.GetSummaryItems();
+            foreach (var meal in summaryItems)
+            {
+                foreach (var ingredient in meal.Ingredients)
+                {
+                    ingredientsSummary.Add(ingredient);
+                }
+            }
+            StateHasChanged();
+        }
+    }
+    async Task ClearLocalStorage()
+    {
+        await localStorage.ClearAsync();
+        StateHasChanged();
+        uriHelper.NavigateTo(uriHelper.Uri, forceLoad: true);
+
+
+    }
+}

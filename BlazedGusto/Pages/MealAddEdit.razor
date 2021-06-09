@@ -1,0 +1,94 @@
+﻿@page "/mealaddedit/{MealId:int}"
+@inject IMealService MealService
+@inject NavigationManager NavigationManager
+
+<EditForm Model="@meal" OnValidSubmit="@MealSave" class="form-inline">
+    <div class="container mx-md-auto mx-sm-0">
+        <!-- You may want to change some type="" choices to better suit your own data -->
+        <div class='row my-5'>
+            <div class="col-md-8 mx-auto py-lg-5">
+                <div class="card rounded-sm p-4 shadow-sm bg-white mx-auto my-md-5 mx-sm-0">
+                    <h3 class="mb-3 text-center">@pagetitle</h3>
+                    <hr />
+
+                    <SfTextBox @bind-Value="meal.Title" CssClass="e-outline my-3" Placeholder="Meal Name" FloatLabelType="@FloatLabelType.Auto"></SfTextBox>
+                    <SfTextBox @bind-Value="meal.Img" CssClass="e-outline my-3" Placeholder="Meal Img Url" FloatLabelType="@FloatLabelType.Auto"></SfTextBox>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <SfNumericTextBox @bind-Value="meal.PrepTime" CssClass="e-outline my-3" Placeholder="Preparation Time" FloatLabelType="@FloatLabelType.Auto"></SfNumericTextBox>
+                        </div>
+                        <div class="col-lg-6">
+                            <SfTextBox @bind-Value="meal.Nationality" CssClass="e-outline my-3" Placeholder="Meal Originate" FloatLabelType="@FloatLabelType.Auto"></SfTextBox>
+
+                        </div>
+                    </div>
+                    <SfTextBox @bind-Value="meal.Description" CssClass="e-outline my-3" Placeholder="Meal Description" FloatLabelType="@FloatLabelType.Auto" Multiline="true"></SfTextBox>
+                    <div class="row">
+                        <div class="col-12 errormsg">
+                            <DataAnnotationsValidator />
+                            <ValidationSummary />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 buttons text-center">
+                            <button class="btn btn-primary">@buttontext</button>
+                            <button class="btn btn-secondary" @onclick="@Cancel">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</EditForm>
+
+@code {
+    // Create a new, empty Meal object
+    Meal meal = new Meal();
+
+    [Parameter]
+    public int MealId { get; set; }
+
+    // Set default page title and button text
+    public string pagetitle = "Add New Meal";
+    public string buttontext = "Add";
+
+    //Executes on page open, set defaults on page.
+    protected override async Task OnInitializedAsync()
+    {
+        // ============ If the passed-in MealId is zero, assume new Meal.
+        if (MealId == 0)
+        {
+            // Use this block to set for defaults (optional)
+        }
+        else
+        {
+            meal = await MealService.Meal_GetOne(MealId);
+            // Change page title and button text since this is an edit.
+            pagetitle = "Edit Meal";
+            buttontext = "Update";
+        }
+    }
+    // Executes OnValidSubmit of EditForm above.
+    protected async Task MealSave()
+    {
+        if (meal.MealId == 0)
+        {
+            // Insert if MealId is zero.
+            //meal.Created_At = DateTime.Now;
+            await MealService.MealInsert(meal);
+        }
+        else
+        {
+            // Update if MealId not 0
+            await MealService.MealUpdate(meal);
+        }
+        NavigationManager.NavigateTo("/meallist");
+    }
+    //Executes if user clicks the Cancel button.
+    protected void Cancel()
+    {
+        NavigationManager.NavigateTo("/lean-in-15");
+    }
+}
