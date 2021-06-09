@@ -32,6 +32,7 @@
         <div class="row">
             <div class="col-md-11 p-5 mx-auto rounded-sm shadow-sm bg-white">
                 <h3 class="text-center">Total Ingredients</h3>
+                <hr />
                 <div class="row">
                     <div class="col-md-1">
                         @foreach (var item in ingredientsSummary.GroupBy(x => x.Img).Select(y => new { Img = y.Key, Val = y.Sum(s => s.Quantity) }))

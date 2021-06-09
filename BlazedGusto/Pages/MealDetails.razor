@@ -95,7 +95,7 @@
                         <EditForm Context="IngredientForm" Model="@cookingInstruction" OnValidSubmit="@CookingInstructionSave" class="form-inline">
                             <SfTextBox CssClass="e-outline mb-2" @bind-Value="cookingInstruction.Img" Placeholder="Image Url" FloatLabelType="@FloatLabelType.Auto"></SfTextBox>
                             <SfNumericTextBox CssClass="e-outline mb-2" @bind-Value="cookingInstruction.Step" Placeholder="Step" FloatLabelType="@FloatLabelType.Auto"></SfNumericTextBox>
-                            <SfTextBox CssClass="e-outline my-3" @bind-Value="cookingInstruction.Description" Placeholder="Type" FloatLabelType="@FloatLabelType.Auto"></SfTextBox>
+                            <SfTextBox Multiline="true" CssClass="e-outline my-3" @bind-Value="cookingInstruction.Description" Placeholder="Description" FloatLabelType="@FloatLabelType.Auto"></SfTextBox>
                             <div class="row">
                                 <div class="col-12 errormsg">
                                     <DataAnnotationsValidator />
@@ -104,7 +104,7 @@
                             </div>
                             <div class="row">
                                 <div class="col-12 buttons text-center">
-                                    <button class="btn btn-primary mx-auto" type="submit">Add Ingredient</button>
+                                    <button class="btn btn-primary mx-auto" type="submit">Add Instruction</button>
                                 </div>
                             </div>
                         </EditForm>
